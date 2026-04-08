@@ -87,7 +87,79 @@ print("Captura TCP detenida")
 Finalmente, el archivo generado fue descargado para su análisis en la herramienta Wireshark, donde se examinará el comportamiento del protocolo TCP.
 Este procedimiento corresponde a la fase de análisis de descarga descrita en el laboratorio, en la cual se busca observar el funcionamiento de un protocolo confiable orientado a conexión.
 
-<img width="888" height="840" alt="image" src="https://github.com/user-attachments/assets/fa642977-8b60-4247-9d43-54e751fb8872" />
+<img width="729" height="247" alt="image" src="https://github.com/user-attachments/assets/1a771175-fd21-4347-b120-c8538be79a67" />
+
 
 Esta fase permitió evidenciar cómo el protocolo TCP garantiza la entrega confiable de datos durante la descarga de archivos desde internet.
 
+## PASO 3: Captura de tráfico UDP (simulación de video)
+### Iniciar captura UDP
+
+En esta fase del laboratorio se realizó la captura del tráfico de red asociado a una simulación de transmisión de video en tiempo real, utilizando el protocolo UDP. A diferencia de la fase anterior, en la que se analizó la descarga de un archivo mediante TCP, en este caso se buscó representar una comunicación rápida y continua, donde la prioridad no es la fiabilidad absoluta sino la baja latencia.
+
+Para ello, primero se inició una captura de paquetes con la herramienta tcpdump, enfocada exclusivamente en el tráfico UDP sobre el puerto 12345. El comando utilizado fue el siguiente:
+
+```bash
+!sudo tcpdump -i eth0 -s 1500 -w video_udp.pcap udp and port 12345 &
+print("Captura UDP iniciada")
+```
+- tcpdump captura tráfico de red
+- i eth0 usa la interfaz principal
+- s 1500 captura suficiente contenido
+- w video_udp.pcap guarda el tráfico en archivo
+- udp and port 12345 filtra solamente tráfico UDP en ese puerto
+- & hace que quede corriendo en segundo plano
+- 
+<img width="705" height="180" alt="image" src="https://github.com/user-attachments/assets/3b172a59-f27d-45ff-99ce-a6f41d0d1046" />
+
+### Crear el tráfico UDP (simular video)
+Este comando permitió registrar únicamente los paquetes UDP intercambiados en el puerto especificado, almacenándolos en un archivo .pcap llamado video_udp.pcap, el cual será analizado posteriormente en Wireshark.
+
+Una vez iniciada la captura, se ejecutó un script en Python que simuló una transmisión de video mediante el envío de 100 paquetes UDP consecutivos. Cada paquete contenía datos aleatorios que representaban un fotograma o fragmento de video. El código utilizado fue:
+
+```bash
+import socket
+import time
+import random
+
+UDP_IP = "127.0.0.1"
+UDP_PORT = 12345
+FRAME_SIZE = 1024
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+print("Iniciando transmisión de video simulada por UDP")
+
+for i in range(100):
+    message = f"Frame_{i}_Data_" + ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=FRAME_SIZE))
+    sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
+    time.sleep(0.05)
+
+print("Transmisión finalizada")
+```
+<img width="729" height="566" alt="image" src="https://github.com/user-attachments/assets/107d9929-c039-4702-9104-5d833990f7fd" />
+
+
+### Detener captura UDP
+En este script, se utilizó la librería socket para crear un canal de comunicación UDP, configurando como destino la dirección local 127.0.0.1 y el puerto 12345. Posteriormente, se enviaron múltiples paquetes con un intervalo corto de tiempo entre ellos, simulando así un flujo continuo de datos similar al de una transmisión en tiempo real.
+
+Finalizada la simulación, se detuvo la captura de paquetes con el siguiente comando:
+
+```bash
+!sudo pkill tcpdump
+print("Captura UDP detenida")
+```
+<img width="754" height="154" alt="image" src="https://github.com/user-attachments/assets/fc75180c-a4f7-4ad0-8293-e0e449d11f1a" />
+
+### Descargar archivo UDP
+Finalmente, el archivo video_udp.pcap fue descargado para su análisis en Wireshark.
+
+Esta fase permitió evidenciar el comportamiento del protocolo UDP, el cual se caracteriza por su rapidez y simplicidad, ya que no requiere establecer una conexión previa ni garantiza la retransmisión de paquetes perdidos. Estas características lo hacen adecuado para aplicaciones en tiempo real, como transmisión de audio o video, donde es preferible mantener la fluidez del servicio antes que esperar la recuperación de datos perdidos.
+
+```bash
+from google.colab import files
+files.download("video_udp.pcap")
+```
+<img width="894" height="735" alt="image" src="https://github.com/user-attachments/assets/8f63694e-eab7-4ae3-a690-5c32b7e67311" />
+
+A través de esta fase se pudo observar que UDP resulta apropiado para aplicaciones en tiempo real, ya que reduce la latencia al no depender de mecanismos de confirmación o retransmisión.
