@@ -221,3 +221,24 @@ Este comportamiento confirma que el protocolo UDP está orientado a la rapidez y
 
 La ausencia de retransmisiones y confirmaciones en UDP reduce el tiempo de entrega de los datos, pero implica que algunos paquetes pueden perderse sin ser recuperados.
 Este comportamiento contrasta con el protocolo TCP, donde se prioriza la confiabilidad sobre la velocidad.
+
+
+## Resultados
+
+Durante el desarrollo del laboratorio se logró capturar tráfico tanto TCP como UDP, evidenciando diferencias importantes entre ambos protocolos.
+
+En el análisis TCP se observó el establecimiento de conexiones, así como retransmisiones de paquetes, lo cual confirma su enfoque en la confiabilidad.
+
+En el análisis UDP se evidenció un flujo continuo de paquetes sin control de errores ni retransmisiones, lo que demuestra su enfoque en la velocidad y baja latencia.
+
+## Conclusiones
+
+El desarrollo de este laboratorio permitió comprender de manera práctica el funcionamiento de los protocolos TCP y UDP en diferentes escenarios.
+
+Se evidenció que TCP es ideal para la transferencia de archivos, ya que garantiza la entrega completa y ordenada de los datos mediante mecanismos como retransmisión y control de errores.
+
+Por otro lado, UDP demostró ser más eficiente para aplicaciones en tiempo real, como la transmisión de video, debido a su baja latencia y simplicidad, aunque no garantiza la entrega de los paquetes.
+
+Adicionalmente, se identificó que en entornos virtualizados como Google Colab pueden existir limitaciones en la captura de tráfico, lo cual requirió ajustes en la configuración para lograr resultados adecuados.
+
+En conclusión, la elección entre TCP y UDP depende de las necesidades de la aplicación, priorizando confiabilidad o velocidad según el caso.
