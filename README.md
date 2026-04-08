@@ -163,3 +163,61 @@ files.download("video_udp.pcap")
 <img width="894" height="735" alt="image" src="https://github.com/user-attachments/assets/8f63694e-eab7-4ae3-a690-5c32b7e67311" />
 
 A través de esta fase se pudo observar que UDP resulta apropiado para aplicaciones en tiempo real, ya que reduce la latencia al no depender de mecanismos de confirmación o retransmisión.
+
+## Paso 4: Análisis en Wireshark
+## Parte 1: Análisis del archivo TCP
+### Ver inicio de conexión (Handshake)
+Iniciamos analizando el primer archivo "descarga_tcp.pcap", abrimos el archivo en Wireshark.
+Para analizar el inicio de la comunicación TCP se utilizó el filtro:
+
+tcp.flags.syn == 1
+
+Este filtro permite identificar los paquetes SYN, los cuales son utilizados para iniciar una conexión TCP. A partir de estos paquetes se puede observar el establecimiento del three-way handshake, mecanismo mediante el cual se crea una conexión confiable entre cliente y servidor.
+
+<img width="1025" height="1005" alt="image" src="https://github.com/user-attachments/assets/355845f7-1cc4-4a97-bdba-339b7f29bce5" />
+
+Durante el análisis del archivo descarga_tcp.pcap se observó tráfico correspondiente al protocolo TCP y HTTP entre las direcciones IP internas del entorno de Google Colab.
+
+En la captura se identifican solicitudes HTTP tipo GET, lo cual indica que el cliente está solicitando recursos a un servidor, en este caso asociados a la descarga del modelo YOLOv8. Este comportamiento evidencia el intercambio de datos necesario para completar la descarga.
+
+Las direcciones IP observadas (172.28.0.12 y 172.28.0.1) corresponden a direcciones internas del entorno de ejecución, lo que confirma que el tráfico se maneja dentro de la infraestructura de Colab.
+
+Aunque no se observaron paquetes explícitos en el puerto 443, sí se evidenció tráfico TCP activo, lo cual permite analizar el comportamiento del protocolo durante la transferencia de datos.
+
+Filtro: tcp.analysis.retransmission
+
+<img width="1014" height="827" alt="image" src="https://github.com/user-attachments/assets/80954171-16cd-4692-986a-1b91f845041c" />
+
+En la imagen se observa el resultado del filtro tcp.analysis.retransmission aplicado sobre el archivo descarga_tcp.pcap.
+
+Este filtro permite identificar los paquetes que han sido retransmitidos durante la comunicación TCP. Las retransmisiones ocurren cuando un paquete no llega correctamente al destino o no es confirmado, por lo que el protocolo TCP lo envía nuevamente para garantizar la integridad de la información.
+
+En este caso, se evidencian varios paquetes marcados como "TCP Retransmission", lo que indica que durante la descarga del modelo se presentaron pequeñas pérdidas o retrasos en la transmisión de datos. Sin embargo, gracias a los mecanismos de control de TCP, estos paquetes fueron reenviados correctamente.
+
+Este comportamiento demuestra una de las principales características del protocolo TCP: su capacidad para asegurar la entrega confiable de los datos, incluso en presencia de errores o congestión en la red.
+TCP Stream
+
+<img width="948" height="971" alt="image" src="https://github.com/user-attachments/assets/c04317d0-4666-42f5-b90c-e690902e9317" />
+
+Este mecanismo es fundamental en la descarga de archivos, ya que permite recuperar información perdida. No obstante, en aplicaciones en tiempo real como video, las retransmisiones pueden generar latencia y afectar la fluidez de la transmisión.
+
+## Parte 2: Análisis del archivo UDP
+Abrimos el archivo video_udp.pcap en wireshark para poder analizarlo.
+
+i bby<img width="550" height="288" alt="image" src="https://github.com/user-attachments/assets/1ad1267f-2bc0-4164-95d9-b68ac7c857fb" />
+
+### Aplicar filtro
+udp.port == 12345
+<img width="579" height="309" alt="image" src="https://github.com/user-attachments/assets/35e6ebfa-3ec9-48b6-bf4e-6b5ed830b224" />
+En la imagen se presenta el análisis del tráfico UDP capturado durante la simulación de transmisión de video, utilizando el filtro udp.port == 12345 en Wireshark.
+
+Se observa un conjunto de paquetes enviados desde la dirección IP 172.28.0.12 hacia 8.8.8.8, todos utilizando el puerto 12345, lo cual corresponde a la configuración realizada en el script de simulación. Los paquetes presentan un tamaño constante (aproximadamente 1026 bytes), lo que indica un flujo uniforme de datos.
+
+Adicionalmente, se evidencia que los paquetes son enviados de forma continua en intervalos muy cortos de tiempo, lo que simula un flujo de información similar al de una transmisión de video en tiempo real.
+
+En la sección inferior de la imagen se muestra el detalle de un paquete UDP, donde se pueden observar campos como la dirección IP de origen y destino, el puerto de origen, el puerto de destino y la longitud del paquete. A diferencia del protocolo TCP, no se observan mecanismos de establecimiento de conexión ni retransmisión de paquetes.
+
+Este comportamiento confirma que el protocolo UDP está orientado a la rapidez y baja latencia, permitiendo el envío continuo de datos sin verificar su correcta recepción, lo cual lo hace ideal para aplicaciones en tiempo real como la transmisión de video.
+
+La ausencia de retransmisiones y confirmaciones en UDP reduce el tiempo de entrega de los datos, pero implica que algunos paquetes pueden perderse sin ser recuperados.
+Este comportamiento contrasta con el protocolo TCP, donde se prioriza la confiabilidad sobre la velocidad.
